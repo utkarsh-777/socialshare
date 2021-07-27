@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/activity_feed.dart';
 import 'package:fluttershare/pages/comments.dart';
+import 'package:fluttershare/pages/profile.dart';
 import 'package:fluttershare/widgets/custom_image.dart';
 import 'package:fluttershare/widgets/progress.dart';
 import 'package:fluttershare/pages/home.dart';
@@ -19,6 +20,7 @@ class Post extends StatefulWidget {
   final String description;
   final String mediaURL;
   final dynamic likes;
+  final String category;
 
   Post({
     this.postId,
@@ -28,6 +30,7 @@ class Post extends StatefulWidget {
     this.description,
     this.mediaURL,
     this.likes,
+    this.category,
   });
 
   factory Post.fromDocument(DocumentSnapshot doc) {
@@ -39,6 +42,7 @@ class Post extends StatefulWidget {
       description: doc['caption'],
       mediaURL: doc['mediaURL'],
       likes: doc['likes'],
+      category: doc['category'],
     );
   }
 
@@ -66,6 +70,7 @@ class Post extends StatefulWidget {
         mediaURL: this.mediaURL,
         likes: this.likes,
         likesCount: getLikeCount(this.likes),
+        category: this.category,
       );
 }
 
@@ -78,6 +83,7 @@ class _PostState extends State<Post> {
   final String location;
   final String description;
   final String mediaURL;
+  final String category;
   int likesCount;
   Map likes;
   bool isLiked;
@@ -93,7 +99,38 @@ class _PostState extends State<Post> {
     this.mediaURL,
     this.likes,
     this.likesCount,
+    this.category,
   });
+
+  deletePost(String postId, BuildContext parentContext) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete ?'),
+          content: Text('Delete Post $postId'),
+          actions: [
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel')),
+            ElevatedButton(
+                onPressed: () async {
+                  await postsRef
+                      .document(currentUserId)
+                      .collection('userPosts')
+                      .document(postId)
+                      .delete();
+                  Navigator.pop(context);
+                  Navigator.pop(parentContext);
+                },
+                child: Text('Delete')),
+          ],
+        );
+      },
+    );
+  }
 
   buildPostHeader() {
     return FutureBuilder(
@@ -110,18 +147,52 @@ class _PostState extends State<Post> {
           ),
           title: GestureDetector(
             onTap: () => showProfile(context, profileId: user.id),
-            child: Text(
-              user.username,
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+            child: RichText(
+              text: TextSpan(
+                text: user.username,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  fontSize: 16,
+                ),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: ' (',
+                    style: TextStyle(
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                  TextSpan(
+                    text: category != null ? category : "General",
+                    style: TextStyle(
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ')',
+                    style: TextStyle(
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           subtitle: Text(location),
           trailing: IconButton(
-            onPressed: () => print('deleting'),
-            icon: Icon(Icons.more_vert),
+            onPressed: () => deletePost(postId, context),
+            icon: user.id == currentUserId
+                ? Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                  )
+                : Icon(null),
           ),
         );
       },

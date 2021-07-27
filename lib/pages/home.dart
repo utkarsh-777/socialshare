@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/activity_feed.dart';
+import 'package:fluttershare/pages/category.dart';
 import 'package:fluttershare/pages/create_account.dart';
 import 'package:fluttershare/pages/profile.dart';
 import 'package:fluttershare/pages/search.dart';
@@ -19,6 +20,8 @@ final commentsRef = Firestore.instance.collection('comments');
 final activityFeedRef = Firestore.instance.collection("feed");
 final followersRef = Firestore.instance.collection("followers");
 final followingRef = Firestore.instance.collection("following");
+final categoricalPostsRef = Firestore.instance.collection("categoricalPosts");
+
 final DateTime timestamp = DateTime.now();
 User currentUser;
 
@@ -128,6 +131,7 @@ class _HomeState extends State<Home> {
           //   onPressed: logout,
           // ),
           ActivityFeed(),
+          Category(),
           Upload(currentUser: currentUser),
           Search(),
           Profile(profileId: currentUser?.id),
@@ -141,16 +145,30 @@ class _HomeState extends State<Home> {
           onTap: onTap,
           activeColor: Theme.of(context).primaryColor,
           items: [
-            BottomNavigationBarItem(icon: Icon(Icons.whatshot)),
-            BottomNavigationBarItem(icon: Icon(Icons.notifications_active)),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.whatshot),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.notifications_active,
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.category_outlined,
+              ),
+            ),
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.photo_camera,
-                size: 35.0,
               ),
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.search)),
-            BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+            ),
           ]),
     );
     // return RaisedButton(

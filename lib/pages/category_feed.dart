@@ -6,56 +6,47 @@ import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/widgets/post.dart';
 import 'package:fluttershare/widgets/progress.dart';
 
-class Timeline extends StatefulWidget {
+class CategoryFeed extends StatefulWidget {
+  final String category;
+  CategoryFeed({Key key, @required this.category}) : super(key: key);
+
   @override
-  _TimelineState createState() => _TimelineState();
+  _CategoryFeedState createState() => _CategoryFeedState(category);
 }
 
-class _TimelineState extends State<Timeline> {
+class _CategoryFeedState extends State<CategoryFeed> {
+  final String category;
+  _CategoryFeedState(this.category);
+
   List<dynamic> followingUserIds = [];
   List<Post> posts = [];
   bool isLoading = false;
 
-  getFollowingUsersId() async {
+  getCategoryPosts() async {
     setState(() {
       isLoading = true;
     });
-    QuerySnapshot snapshot = await followingRef
-        .document(currentUser.id)
-        .collection("userFollowing")
+    QuerySnapshot snapshot = await categoricalPostsRef
+        .document(category)
+        .collection('posts')
         .getDocuments();
-    followingUserIds = snapshot.documents.map((doc) => doc.documentID).toList();
-    await getTimelinePosts(followingUserIds);
-  }
 
-  getTimelinePosts(List followingUserIds) async {
-    if (followingUserIds.length > 0) {
-      List<Post> userPosts = [];
-      QuerySnapshot snapshot;
-      followingUserIds.forEach((id) async {
-        snapshot =
-            await postsRef.document(id).collection('userPosts').getDocuments();
-        snapshot.documents.forEach((doc) {
-          userPosts.add(Post.fromDocument(doc));
-        });
-        setState(() {
-          posts = userPosts;
-          isLoading = false;
-        });
-      });
-    }
+    setState(() {
+      posts = snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+      isLoading = false;
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    getFollowingUsersId();
+    getCategoryPosts();
   }
 
   @override
   Widget build(context) {
     return Scaffold(
-      appBar: header(context, isAppTitle: true),
+      appBar: header(context, titleText: category),
       body: isLoading
           ? circularProgress()
           : posts.length > 0

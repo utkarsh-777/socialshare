@@ -118,12 +118,14 @@ class _ProfileState extends State<Profile> {
 
   editProfile() {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => EditProfile(
-                  currentUserId: widget.profileId,
-                  usersRef: usersRef,
-                )));
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfile(
+          currentUserId: widget.profileId,
+          usersRef: usersRef,
+        ),
+      ),
+    );
   }
 
   Container buildButton({String text, Function function}) {

@@ -29,6 +29,8 @@ class _UploadState extends State<Upload> {
   bool isUploading = false;
   String postId = Uuid().v4();
 
+  String dropdownValue = 'General';
+
   handleTakePhoto(BuildContext context) async {
     Navigator.pop(context);
     File imageFile = await ImagePicker.pickImage(
@@ -104,7 +106,7 @@ class _UploadState extends State<Upload> {
                 ),
               ),
               child: Text(
-                "Upload Image",
+                "Upload Content",
                 style: TextStyle(
                   fontSize: 22.0,
                   color: Colors.white,
@@ -143,8 +145,12 @@ class _UploadState extends State<Upload> {
     return downloadUrl;
   }
 
-  createPostInFirestore({String mediaURL, String location, String caption}) {
-    postsRef
+  createPostInFirestore({
+    String mediaURL,
+    String location,
+    String caption,
+  }) async {
+    await postsRef
         .document(widget.currentUser.id)
         .collection("userPosts")
         .document(postId)
@@ -155,6 +161,19 @@ class _UploadState extends State<Upload> {
       "mediaURL": mediaURL,
       "caption": caption,
       "location": location,
+      "category": dropdownValue,
+      "timeStamp": Timestamp.now(),
+      "likes": {},
+    });
+
+    await categoricalPostsRef.document(dropdownValue).collection("posts").add({
+      "postId": postId,
+      "ownerId": widget.currentUser.id,
+      "username": widget.currentUser.username,
+      "mediaURL": mediaURL,
+      "caption": caption,
+      "location": location,
+      "category": dropdownValue,
       "timeStamp": Timestamp.now(),
       "likes": {},
     });
@@ -166,7 +185,7 @@ class _UploadState extends State<Upload> {
     });
     await compressImage();
     String mediaURL = await uploadImage(file);
-    createPostInFirestore(
+    await createPostInFirestore(
       mediaURL: mediaURL,
       location: locationController.text,
       caption: captionController.text,
@@ -265,6 +284,43 @@ class _UploadState extends State<Upload> {
                   hintText: "Write a Caption...",
                   border: InputBorder.none,
                 ),
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.category,
+            ),
+            title: Container(
+              width: 250.0,
+              child: DropdownButton<String>(
+                value: dropdownValue,
+                icon: const Icon(Icons.arrow_downward),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(color: Colors.black),
+                isExpanded: true,
+                underline: Container(
+                  height: 2,
+                  color: Colors.blue,
+                ),
+                onChanged: (String newValue) {
+                  setState(() {
+                    dropdownValue = newValue;
+                  });
+                },
+                items: <String>[
+                  'General',
+                  'Sports',
+                  'Health',
+                  'News',
+                  'Politics',
+                ].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
               ),
             ),
           ),
